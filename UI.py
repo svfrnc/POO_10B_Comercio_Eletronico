@@ -8,7 +8,6 @@ import time
 
 
 class UI:
-    #CRIAÇÃO DE CONTA OU LOGIN
     @staticmethod
     def home() -> None:
 
@@ -22,6 +21,8 @@ class UI:
             st.session_state.id_cliente_logado = None
         if "nome_cliente_logado" not in st.session_state:
             st.session_state.nome_cliente_logado = None
+        if "tela" not in st.session_state:
+            st.session_state.tela = "login"
 
         if st.session_state.usuario_logado:
             if st.session_state.email_logado == "admin@gmail.com":
@@ -29,14 +30,16 @@ class UI:
             else:
                 ClienteInterface.main()
         else:
-            st.header("Sistema ECommerce - DISCOOL VINIS E CDS", divider="red")
+            st.header("DISCOOL VINIS E CDS", divider="orange")
 
-            if not st.session_state.usuario_logado:
-                aba1, aba2 = st.tabs(["Criar Conta", "Fazer Login"])
-                with aba1:
-                    UI.criar_usuario()
-                with aba2:
-                    UI.validacao()
+        if not st.session_state.usuario_logado:
+                    # Verifica qual tela deve ser exibida baseada no nosso estado
+                    if st.session_state.tela == "login":
+                        UI.validacao()
+                        st.button("Não tem conta? Cadastre-se")
+                    else:
+                        UI.criar_usuario()
+                    
             
 
 
