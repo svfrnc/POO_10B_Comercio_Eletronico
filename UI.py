@@ -29,7 +29,7 @@ class UI:
             else:
                 ClienteInterface.main()
         else:
-            st.header("Sistema ECommerce - Cantina Santa Clara", divider="red")
+            st.header("Sistema ECommerce - DISCOOL VINIS E CDS", divider="red")
 
             if not st.session_state.usuario_logado:
                 aba1, aba2 = st.tabs(["Criar Conta", "Fazer Login"])
@@ -71,7 +71,7 @@ class UI:
 
 
         if button:
-            if (email == "admin@gmail.com") and (senha == "9999"):
+            if (email == "admin@gmail.com") and (senha == "1234"):
                 st.success("Admin logado com sucesso!")
                 st.session_state.usuario_logado = True #estado atualizado
                 st.session_state.email_logado = email
