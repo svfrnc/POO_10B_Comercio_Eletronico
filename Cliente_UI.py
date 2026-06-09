@@ -26,10 +26,10 @@ class ClienteInterface:
             if button_sair:
                 ClienteInterface.sair()
 
-        if aba_selecionada == "Ver Produtos":
+        if aba_selecionada == "Produtos":
             ClienteInterface.produto_listar()
 
-        elif aba_selecionada == "Carrinho":
+        elif aba_selecionada == "Meu Carrinho":
             ClienteInterface.meu_carrinho()
 
         elif aba_selecionada == "Meus Pedidos":
