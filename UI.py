@@ -32,13 +32,24 @@ class UI:
         else:
             st.header("DISCOOL VINIS E CDS", divider="orange")
 
-        if not st.session_state.usuario_logado:
-                    # Verifica qual tela deve ser exibida baseada no nosso estado
-                    if st.session_state.tela == "login":
-                        UI.validacao()
-                        st.button("Não tem conta? Cadastre-se")
-                    else:
-                        UI.criar_usuario()
+            if not st.session_state.usuario_logado:
+                        
+                        # Verifica qual tela deve ser exibida baseada no nosso estado
+                        if st.session_state.tela == "login":
+                            UI.validacao() # Mostra o formulário de login
+                            
+                            # Botão para ir para o cadastro
+                            if st.button("Não tem conta? Cadastre-se"):
+                                st.session_state.tela = "cadastro" # Muda o destino
+                                st.rerun() # Recarrega a página imediatamente
+                        
+                        else:
+                            UI.criar_usuario() # Mostra o formulário de cadastro
+                            
+                            # Botão para voltar para o login
+                            if st.button("Já tem uma conta? Faça Login"):
+                                st.session_state.tela = "login" # Muda o destino de volta
+                                st.rerun() # Recarrega a página imediatamente
                     
             
 
