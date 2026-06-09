@@ -18,7 +18,7 @@ class ClienteInterface:
             aba_selecionada = option_menu(
                 menu_title = "Painel do usuário",
                 options = ["Produtos", "Meu Carrinho", "Meus Pedidos"],
-                icons = ["box-seam", "box" , "currency-dollar" , "file-earmark-text"],
+                icons = ["box-seam", "cart" , "currency-dollar" , "file-earmark-text"],
                 default_index = 0,
                 key = "cliente_menu"
             )
