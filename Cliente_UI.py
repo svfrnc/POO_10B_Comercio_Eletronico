@@ -13,12 +13,12 @@ class ClienteInterface:
         st.session_state.nome_cliente_logado
 
         with st.sidebar:
-            st.info(f"Bem Vindo, {st.session_state.nome_cliente_logado}")
+            st.info(f"Bem Vindo, {st.session_state.nome_cliente_logado}!")
 
             aba_selecionada = option_menu(
-                menu_title = "Painel Cliente",
-                options = ["Ver Produtos", "Carrinho", "Meus Pedidos"],
-                icons = ["box-seam", "cart", "cash-coin", "receipt"],
+                menu_title = "Painel do usuário",
+                options = ["Produtos", "Meu Carrinho", "Meus Pedidos"],
+                icons = ["box-seam", "carshopping_cart", "dollar", "receipt"],
                 default_index = 0,
                 key = "cliente_menu"
             )
