@@ -52,7 +52,6 @@ class ClienteInterface:
                 st.info("Nenhum produto disponível no momento.")
                 return
 
-            # Configuração do número de colunas por linha na vitrine
             colunas_por_linha = 3
             
             # Loop que divide os produtos em grupos do tamanho estipulado
@@ -92,7 +91,6 @@ class ClienteInterface:
                                     key=f"qtd_{produto.id}"  # Chave única obrigatória
                                 )
 
-                                # 4. Botão de Compra Dedicado
                                 if st.button("🛒 Adicionar ao Carrinho", key=f"btn_{produto.id}", use_container_width=True, type="primary"):
                                     if ClienteView.inserir_produto_carrinho(st.session_state.id_cliente_logado, produto.id, quantidade):
                                         st.success(f"Adicionado!")
