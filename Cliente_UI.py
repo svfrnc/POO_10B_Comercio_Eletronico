@@ -36,45 +36,76 @@ class ClienteInterface:
             ClienteInterface.ver_pedidos()
         
     #VER PRODUTOS E ADICIONAR AO CARRINHO
+ # VER PRODUTOS E ADICIONAR AO CARRINHO (MODELO EM CARDS)
     @staticmethod
-    def produto_listar()-> None:
-        st.header("Produtos", divider="blue")
-        try:
-            with st.container(border=True):
-                st.subheader("Produtos Disponiveis")
-                listar_produtos = [p.to_dict() for p in ClienteView.listar_produtos()]
-                st.caption("A partir de 5 unidades, voce ganha um desconto de 25%.")
-                st.dataframe(
-                        listar_produtos, 
-                        column_config={
-                            "Id": st.column_config.Column(alignment="left"),
-                            "Nome": st.column_config.Column(alignment="left"),
-                            "Preço": st.column_config.Column(alignment="left"),
-                            "Estoque": st.column_config.Column(alignment="left"),
-                            "idCategoria": st.column_config.Column(alignment="left"),
-                            "Imagem": st.column_config.ImageColumn("Imagem", help="Prévia do produto"),
-                    })
+    def produto_listar() -> None:
+        import base64  # Necessário para decodificar a string da imagem salvada no JSON
 
-        except ValueError as erro:
-            print(" ---- Erro ---->", erro)
+        st.header("💽 Produtos", divider="blue")
+        st.caption("Veja aqui os ultimos lançamentos e produtos adicionados a loja.")
 
         try:
-            with st.container(border=True):
-                    st.subheader("Adicionar produtos ao carrinho")
-                    idProduto = st.number_input("Informe o ID do produto: ", min_value=1)
-                    quantidade = st.number_input("Informe a quantidade: ", min_value=1)
-                    if st.button("Adicionar ao Carrinho"):
-                        try:
-                            if ClienteView.inserir_produto_carrinho(st.session_state.id_cliente_logado, idProduto, quantidade):
-                                st.success("Produto adicionado ao carrinho!")
-                                time.sleep(2)
-                                st.rerun()
+            # Obtém a lista de instâncias de objetos diretamente da View
+            produtos = ClienteView.listar_produtos()
+
+            if not produtos:
+                st.info("Nenhum produto disponível no momento.")
+                return
+
+            # Configuração do número de colunas por linha na vitrine
+            colunas_por_linha = 3
+            
+            # Loop que divide os produtos em grupos do tamanho estipulado
+            for i in range(0, len(produtos), colunas_por_linha):
+                grupo_produtos = produtos[i : i + colunas_por_linha]
+                colunas = st.columns(colunas_por_linha)
+
+                for col, produto in zip(colunas, grupo_produtos):
+                    with col:
+                        # O container com borda cria o efeito visual de 'Card'
+                        with st.container(border=True):
+                            
+                            # 1. Renderização da Imagem do Produto
+                            if produto.imagem:
+                                try:
+                                    img_bytes = base64.b64decode(produto.imagem)
+                                    st.image(img_bytes, use_container_width=True)
+                                except Exception:
+                                    # Caso haja falha na string base64, exibe um placeholder
+                                    st.image("https://via.placeholder.com/150", caption="Erro ao carregar imagem", use_container_width=True)
                             else:
-                                st.error("Produto não encontrado!")
-                        except ValueError as erro:
-                            print(" ---- Erro ---->", erro)
-        except ValueError as erro:
-            print(" ---- Erro ---->", erro)
+                                st.image("https://via.placeholder.com/150", caption="Sem imagem", use_container_width=True)
+
+                            # 2. Informações do Produto (Acessadas diretamente por POO)
+                            st.subheader(produto.descricao)
+                            st.write(f"**Preço:** R$ {produto.preco:.2f}")
+                            
+                            if produto.estoque > 0:
+                                st.write(f"📦 *Estoque:* {produto.estoque} un.")
+                                
+                                # 3. Seletor de Quantidade interno ao Card
+                                quantidade = st.number_input(
+                                    "Quantidade:",
+                                    min_value=1,
+                                    max_value=produto.estoque,
+                                    value=1,
+                                    key=f"qtd_{produto.id}"  # Chave única obrigatória
+                                )
+
+                                # 4. Botão de Compra Dedicado
+                                if st.button("🛒 Adicionar ao Carrinho", key=f"btn_{produto.id}", use_container_width=True, type="primary"):
+                                    if ClienteView.inserir_produto_carrinho(st.session_state.id_cliente_logado, produto.id, quantidade):
+                                        st.success(f"Adicionado!")
+                                        time.sleep(1)
+                                        st.rerun()
+                                    else:
+                                        st.error("Erro ao adicionar produto.")
+                            else:
+                                st.error("Produto Esgotado")
+
+        except Exception as erro:
+            st.error(f"Erro ao carregar a vitrine de produtos.")
+            print(" ---- Erro Interno ---->", erro)
 
     #VER CARRINHO E FINALIZAR COMPRA
     @staticmethod
@@ -96,7 +127,7 @@ class ClienteInterface:
             col1, col2 = st.columns(2)
 
             with col1:
-                if st.button("Limpar Carrinho", use_container_width=True, type="secondary"):
+                if st.button("🛒 Limpar Carrinho", use_container_width=True, type="secondary"):
                     ClienteView.limpar_carrinho(st.session_state.id_cliente_logado)
                     st.success("Carrinho limpo!")
                     time.sleep(2)

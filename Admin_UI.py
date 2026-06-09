@@ -281,7 +281,7 @@ class AdminUI:
                     st.text(p)
         except ValueError as erro:
             print(" ---- Erro ---->", erro)
-
+            
     @staticmethod
     def produto_atualizar() -> None:
         try:
@@ -299,35 +299,32 @@ class AdminUI:
                     })
                 st.subheader("Atualização de Produto")
 
-                id_str: str = st.text_input("Insira o id do produto a ser atualizado: ", value=1) or ''
+                id_str: str = st.text_input("Insira o id do produto a ser atualizado: ", value="") or ''
                 id: int = int(id_str) if id_str.isdigit() else 0
 
-                descricao: str = st.text_input("Insira a nova descrição: ")
+                # Removemos os placeholders numéricos para que fiquem vazios por padrão se não modificados
+                descricao: str = st.text_input("Insira a nova descrição (deixe em branco para manter a atual): ")
 
-                preco_str: str = st.text_input("Insira o novo preço: ", value=1.0) or ''
-                try:
-                    preco: float = float(preco_str.replace(",", "."))
-                except ValueError:
-                    preco = 0.0
+                preco_str: str = st.text_input("Insira o novo preço (deixe em branco para manter o atual): ") or ''
+                preco = float(preco_str.replace(",", ".")) if preco_str else None
 
-                estoque_str: str = st.text_input("Insira a nova quantidade em estoque: ", value=1) or ''   
-                estoque = int(estoque_str) if estoque_str.isdigit() else 0
+                estoque_str: str = st.text_input("Insira a nova quantidade em estoque (deixe em branco para manter a atual): ") or ''   
+                estoque = int(estoque_str) if estoque_str.isdigit() else None
 
-                idCategoria_str: str = st.text_input("Insira o id da nova categoria do produto: ", value=1) or ''
-                idCategoria = int(idCategoria_str) if idCategoria_str.isdigit() else 0
+                idCategoria_str: str = st.text_input("Insira o id da nova categoria (deixe em branco para manter a atual): ") or ''
+                idCategoria = int(idCategoria_str) if idCategoria_str.isdigit() else None
 
-                image_arquivo = st.file_uploader("Selecione a nova imagem do produto(deixe em branco se quiser manter a atual)", type=['png', 'jpg', 'jpeg'])
-
+                image_arquivo = st.file_uploader("Selecione a nova imagem do produto (deixe em branco para manter a atual)", type=['png', 'jpg', 'jpeg'])
 
                 submit: bool = st.form_submit_button("Atualizar produto", type="secondary")
 
             if submit:
                 image_base64 = ''
-
                 if image_arquivo is not None:
                     bytes_data = image_arquivo.getvalue()
                     image_base64 = base64.b64encode(bytes_data).decode("utf-8")
 
+                # Passa as variáveis (que agora podem ser None se não preenchidas) para a View
                 AdminView.produto_atualizar(id, descricao, preco, estoque, idCategoria, image_base64)
                 st.success("Produto atualizado com sucesso!")
                 time.sleep(2)

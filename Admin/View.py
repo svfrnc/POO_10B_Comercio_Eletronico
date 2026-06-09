@@ -56,8 +56,22 @@ class View:
 
     @staticmethod
     def produto_atualizar(id, descricao, preco, estoque, idCategoria, imagem):
-        p = Produto(id, descricao, preco, estoque, idCategoria, imagem)
-        ProdutoDAO().atualizar(p)
+        # 1. Recupera a instância do produto existente diretamente do arquivo por meio do ID
+        p = ProdutoDAO().listar_id(id)
+        
+        if p is not None:
+            # 2. Modifica os atributos do objeto APENAS se novos dados foram enviados pela interface
+            if descricao: 
+                p.descricao = descricao
+            if preco is not None:
+                p.preco = preco
+            if estoque is not None:
+                p.estoque = estoque
+            if idCategoria is not None:
+                p.idCategoria = idCategoria
+            if imagem:
+                p.imagem = imagem
+            ProdutoDAO().atualizar(p)
 
     @staticmethod
     def produto_excluir(id):

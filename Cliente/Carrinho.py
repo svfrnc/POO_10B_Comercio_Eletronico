@@ -60,8 +60,7 @@ class CarrinhoDAO:
         carrinho = CarrinhoDAO.carrinhos[idCliente_str]
         if len(carrinho.itens) == 0:
             return False
-        
-        # Calcula total
+
         total = 0.0
         for item in carrinho.itens:
             subtotal = item.preco * item.quantidade
@@ -69,21 +68,26 @@ class CarrinhoDAO:
                 subtotal = subtotal * 0.75
             total += subtotal
 
-        
-        # Cria Venda
         venda = Venda(0, datetime.now(), False, total, idCliente)
         VendaDAO.inserir(venda)
         
-        # Verifica se a venda foi inserida com sucesso
         if venda.id == 0:
             return False
         
         venda_id = venda.id
         
-        # Cria VendaItem para cada item do carrinho
         for item in carrinho.itens:
+            # 1. Registra o item da venda
             venda_item = VendaItem(0, item.quantidade, item.preco, venda_id, item.idProduto)
             VendaItemDAO.inserir(venda_item)
+            
+            # 2. Recupera a instância do produto vendido
+            produto = ProdutoDAO.listar_id(item.idProduto)
+            if produto:
+                # 3. Deduz a quantidade do estoque do objeto
+                produto.estoque -= item.quantidade
+                # 4. Atualiza o produto modificado de volta no arquivo JSON
+                ProdutoDAO.atualizar(produto)
         
         # Limpa carrinho
         carrinho.itens = []

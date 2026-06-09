@@ -2,6 +2,19 @@
     "1": {
         "id": 1,
         "idCliente": 1,
-        "itens": []
+        "itens": [
+            {
+                "idProduto": 3,
+                "descricao": "Fones de ouvido Koss Porta Pro",
+                "quantidade": 1,
+                "preco": 129.9
+            },
+            {
+                "idProduto": 4,
+                "descricao": "Heavy Metal - Thy Slaughter",
+                "quantidade": 1,
+                "preco": 41.8
+            }
+        ]
     }
 }
