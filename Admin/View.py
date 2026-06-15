@@ -4,6 +4,8 @@ from Admin.Produto import Produto, ProdutoDAO
 from Cliente.Carrinho import Carrinho, CarrinhoDAO
 from Admin.Promocao import Promocao, PromocaoDAO
 from datetime import datetime
+from Admin.Entregador import Entregador, EntregadorDAO
+from Admin.Entrega import Entrega, EntregaDAO
 
 class View:
     #CLIENTE
@@ -107,3 +109,38 @@ class View:
     @staticmethod
     def obter_promocao_ativa():
         return PromocaoDAO.obter_promocao_ativa()
+    
+    @staticmethod
+    def entregador_inserir(nome, email, senha, fone):
+        e = Entregador(0, nome, email, senha, fone)
+        EntregadorDAO.inserir(e)
+
+    @staticmethod
+    def entregador_listar():
+        return EntregadorDAO.listar()
+
+    # ENTREGAS
+    @staticmethod
+    def entrega_listar():
+        return EntregaDAO.listar()
+
+    @staticmethod
+    def entrega_alocar(idEntrega, idEntregador):
+        EntregaDAO.abrir()
+        entrega = EntregaDAO.listar_id(idEntrega)
+        if entrega:
+            entrega.idEntregador = idEntregador
+            entrega.status = "Em trânsito"
+            EntregaDAO.atualizar(entrega)
+            return True
+        return False
+
+    @staticmethod
+    def entrega_atualizar_status(idEntrega, novo_status):
+        EntregaDAO.abrir()
+        entrega = EntregaDAO.listar_id(idEntrega)
+        if entrega:
+            entrega.status = novo_status
+            EntregaDAO.atualizar(entrega)
+            return True
+        return False

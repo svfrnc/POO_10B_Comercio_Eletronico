@@ -30,3 +30,17 @@ class LoginDAO:
         cls.usuario_logado = False
         cls.idCliente_logado = None
         return False
+    
+    idEntregador_logado = None
+
+    @classmethod
+    def logado_entregador(cls, email, senha) -> bool:
+        from Admin.Entregador import EntregadorDAO
+        EntregadorDAO.abrir()
+        for entregador in EntregadorDAO.objetos:
+            if (entregador.email == email) and (entregador.senha == senha):
+                cls.usuario_logado = True
+                cls.idEntregador_logado = entregador.id
+                cls.nome_logado = entregador.nome
+                return True
+        return False

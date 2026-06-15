@@ -141,21 +141,40 @@ class ClienteInterface:
             st.info("Seu Carrinho esta vazio no momento!")
     
     @staticmethod
-    def ver_pedidos()-> None:
-        st.header("Historico de Compras", divider="green")
+    def ver_pedidos() -> None:
+        st.header("Histórico de Compras e Rastreamento", divider="green")
+        from Admin.View import View as AdminView
         try:   
             with st.container(border=True):
-                listar_compras = [p.to_dict() for p in ClienteView.listar_compras(st.session_state.id_cliente_logado)]
+                compras = ClienteView.listar_compras(st.session_state.id_cliente_logado)
+                if not compras:
+                    st.info("Você ainda não realizou nenhum pedido.")
+                    return
+                
+                # Coleta todas as entregas do sistema para fazer o cruzamento de dados (Join)
+                entregas = AdminView.entrega_listar()
+                
+                dados_rastreamento = []
+                for compra in compras:
+                    # Procura se existe uma entrega ligada à venda atual
+                    match_entrega = next((e for e in entregas if e.idVenda == compra.id), None)
+                    status_logistica = match_entrega.status if match_entrega else "Processando"
+                    
+                    # Mescla as informações
+                    info = compra.to_dict()
+                    info["Status Logístico"] = status_logistica
+                    dados_rastreamento.append(info)
+
                 st.dataframe(
-                        listar_compras,
+                        dados_rastreamento,
                         column_config={
                                 "ID Compra": st.column_config.Column(alignment="left"),
-                                "Total": st.column_config.Column(alignment="left")
+                                "Total": st.column_config.Column(alignment="left"),
+                                "Status Logístico": st.column_config.Column(alignment="left")
                             })
 
         except ValueError as erro:
             print(" ---- Erro ---->", erro)
-
     @staticmethod
     def sair() -> None:
         st.session_state.usuario_logado = False

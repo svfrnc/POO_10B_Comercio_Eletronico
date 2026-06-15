@@ -18,8 +18,8 @@ class AdminUI:
 
             aba_selecionada = option_menu(
                 menu_title = "Painel Admin",
-                options = ["Clientes", "Categorias", "Produtos", "Promoções"],
-                icons = ["people", "tags", "box-seam", "percent"],
+                options = ["Clientes", "Categorias", "Produtos", "Promoções", "Entregas"],
+                icons = ["people", "tags", "box-seam", "percent", "truck"],
                 default_index = 0,
                 key = "admin_menu"
             )
@@ -69,6 +69,9 @@ class AdminUI:
                 AdminUI.promocao_inserir()
             with aba2:
                 AdminUI.promocao_gerenciar()
+        
+        if aba_selecionada == "Entregas":
+            AdminUI.alocar_entregas()
 
     @staticmethod
     def sair() -> None:
@@ -393,7 +396,7 @@ class AdminUI:
                 st.subheader("Alteração permanente de Preços")
 
                 st.info("⚠️ Atenção: Esta operação modifica o preço base dos produtos de forma definitiva no banco de dados.")
-                
+
                 percentual_str: str = st.text_input("Insira o percentual de alteracao (ex: 10 para +10%, -5 para -5%): ", value=1.0) or ''
                 try:
                     percentual = float(percentual_str.replace(",", "."))
@@ -465,3 +468,42 @@ class AdminUI:
                 st.rerun()
         except Exception as erro:
             st.error(f"Erro ao gerenciar promoções.")
+    
+    @staticmethod
+    def alocar_entregas() -> None:
+        st.header("Gerenciamento Logístico", divider="red")
+        try:
+            entregas = AdminView.entrega_listar()
+            entregadores = AdminView.entregador_listar()
+
+            if not entregas:
+                st.info("Nenhuma entrega registrada.")
+                return
+
+            st.subheader("Status Geral das Entregas")
+            st.dataframe([e.to_dict() for e in entregas], use_container_width=True)
+
+            entregas_pendentes = [e for e in entregas if e.status == "Aguardando Entregador"]
+            if not entregas_pendentes:
+                st.success("Todas as entregas já foram distribuídas!")
+                return
+
+            if not entregadores:
+                st.warning("Cadastre entregadores no sistema para realizar a alocação.")
+                return
+
+            with st.form("form_alocacao"):
+                st.subheader("Vincular Entregador ao Pedido")
+                id_ent = st.selectbox("Selecione a Entrega (ID):", [e.id for e in entregas_pendentes])
+                dict_motocas = {e.nome: e.id for e in entregadores}
+                nome_motoca = st.selectbox("Selecione o Entregador:", list(dict_motocas.keys()))
+                sub = st.form_submit_button("Confirmar Envio", type="primary")
+
+            if sub:
+                id_moto = dict_motocas[nome_motoca]
+                if AdminView.entrega_alocar(id_ent, id_moto):
+                    st.success("Entregador alocado e pedido atualizado para 'Em trânsito'!")
+                    time.sleep(1.5)
+                    st.rerun()
+        except Exception as e:
+            st.error("Erro no controle de entregas.")

@@ -3,6 +3,7 @@ from datetime import datetime
 from Admin.Venda import Venda, VendaDAO
 from Admin.VendaItem import VendaItem, VendaItemDAO
 from Admin.Produto import ProdutoDAO
+from Admin.Entrega import Entrega, EntregaDAO
 
 class CarrinhoItem:
     def __init__(self, idProduto: int, descricao: str, quantidade: int, preco: float):
@@ -76,6 +77,10 @@ class CarrinhoDAO:
         
         venda_id = venda.id
         
+        # Cria automaticamente o controle de entrega em estado pendente
+        nova_entrega = Entrega(0, venda_id, 0, "Aguardando Entregador")
+        EntregaDAO.inserir(nova_entrega)
+
         for item in carrinho.itens:
             # 1. Registra o item da venda
             venda_item = VendaItem(0, item.quantidade, item.preco, venda_id, item.idProduto)
