@@ -18,8 +18,8 @@ class AdminUI:
 
             aba_selecionada = option_menu(
                 menu_title = "Painel Admin",
-                options = ["Clientes", "Categorias", "Produtos"],
-                icons = ["people", "tags", "box-seam" ],
+                options = ["Clientes", "Categorias", "Produtos", "Promoções"],
+                icons = ["people", "tags", "box-seam", "percent"],
                 default_index = 0,
                 key = "admin_menu"
             )
@@ -51,7 +51,7 @@ class AdminUI:
 
         if aba_selecionada == "Produtos":
             st.header("Gerenciamento de Produtos", divider="red")
-            aba1, aba2, aba3, aba4 = st.tabs(["Inserir Produto", "Atualizar Produto", "Excluir Produto", "Alterar Preço"])
+            aba1, aba2, aba3, aba4 = st.tabs(["Inserir Produto", "Atualizar Produto", "Excluir Produto", "Reajuste Geral de Preços"])
 
             with aba1:
                 AdminUI.produto_inserir()
@@ -61,6 +61,14 @@ class AdminUI:
                 AdminUI.produto_excluir()
             with aba4:
                 AdminUI.produto_alterar_preco_geral()
+
+        if aba_selecionada == "Promoções":
+            st.header("Gerenciamento de Promoções Gerais", divider="red")
+            aba1, aba2 = st.tabs(["Criar Período Promocional", "Listar / Excluir Promoções"])
+            with aba1:
+                AdminUI.promocao_inserir()
+            with aba2:
+                AdminUI.promocao_gerenciar()
 
     @staticmethod
     def sair() -> None:
@@ -382,8 +390,10 @@ class AdminUI:
                             "Imagem": st.column_config.ImageColumn("Imagem", help="Prévia do produto", width="small")
 
                     })
-                st.subheader("Alteração de Preços")
+                st.subheader("Alteração permanente de Preços")
 
+                st.info("⚠️ Atenção: Esta operação modifica o preço base dos produtos de forma definitiva no banco de dados.")
+                
                 percentual_str: str = st.text_input("Insira o percentual de alteracao (ex: 10 para +10%, -5 para -5%): ", value=1.0) or ''
                 try:
                     percentual = float(percentual_str.replace(",", "."))
@@ -399,3 +409,59 @@ class AdminUI:
                 st.rerun()
         except ValueError as erro:
             print(" ---- Erro ---->", erro)
+
+    @staticmethod
+    def promocao_inserir() -> None:
+        from datetime import datetime, time
+        try:
+            with st.form("form_inserir_promocao"):
+                st.subheader("Configurar Novo Período")
+                
+                col1, col2 = st.columns(2)
+                with col1:
+                    d_inicio = st.date_input("Data de Início")
+                    t_inicio = st.time_input("Horário de Início", time(0, 0))
+                with col2:
+                    d_fim = st.date_input("Data de Fim")
+                    t_fim = st.time_input("Horário de Fim", time(23, 59))
+                    
+                percentual = st.number_input("Percentual de Desconto (%)", min_value=0.0, max_value=100.0, value=10.0, step=1.0)
+                submit = st.form_submit_button("Ativar Período Promocional", type="primary")
+                
+            if submit:
+                dt_inicio = datetime.combine(d_inicio, t_inicio)
+                dt_fim = datetime.combine(d_fim, t_fim)
+                
+                if dt_fim <= dt_inicio:
+                    st.error("A data de término deve ser estritamente posterior à data de início!")
+                else:
+                    AdminView.promocao_inserir(dt_inicio, dt_fim, percentual)
+                    st.success("Período promocional registrado com sucesso!")
+                    time.sleep(1.5)
+                    st.rerun()
+        except Exception as erro:
+            st.error(f"Erro ao inserir período promocional.")
+
+    @staticmethod
+    def promocao_gerenciar() -> None:
+        try:
+            promocoes = AdminView.promocao_listar()
+            if not promocoes:
+                st.info("Nenhum período promocional cadastrado até o momento.")
+                return
+                
+            lista_promos = [p.to_dict() for p in promocoes]
+            st.dataframe(lista_promos, use_container_width=True)
+            
+            with st.form("form_excluir_promocao"):
+                st.subheader("Remover Período Promocional")
+                id_promo = st.number_input("Informe o ID da promoção a ser excluída:", min_value=1, step=1)
+                submit = st.form_submit_button("Excluir Promoção", type="secondary")
+                
+            if submit:
+                AdminView.promocao_excluir(id_promo)
+                st.success("Promoção removida com sucesso!")
+                time.sleep(1.5)
+                st.rerun()
+        except Exception as erro:
+            st.error(f"Erro ao gerenciar promoções.")

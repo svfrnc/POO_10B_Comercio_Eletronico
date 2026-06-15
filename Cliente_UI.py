@@ -35,75 +35,72 @@ class ClienteInterface:
         elif aba_selecionada == "Meus Pedidos":
             ClienteInterface.ver_pedidos()
         
-    #VER PRODUTOS E ADICIONAR AO CARRINHO
- # VER PRODUTOS E ADICIONAR AO CARRINHO (MODELO EM CARDS)
+ # VER PRODUTOS EM FORMATO DE CARDS COM RECORTE DE PROMOÇÃO GERAL
     @staticmethod
     def produto_listar() -> None:
-        import base64  # Necessário para decodificar a string da imagem salvada no JSON
+        import base64
+        from Admin.View import View as AdminView
 
-        st.header("💽 Produtos", divider="blue")
-        st.caption("Veja aqui os ultimos lançamentos e produtos adicionados a loja.")
+        st.header("Produtos", divider="blue")
+        
+        # 1. Verifica se há uma promoção geral ativa neste momento
+        promo_ativa = AdminView.obter_promocao_ativa()
+        if promo_ativa:
+            st.warning(f"🔥 PROMOÇÃO DISCOOL: Tudo com {promo_ativa.percentual_desconto}% de desconto direto na vitrine!")
+        else:
+            st.caption("A partir de 5 unidades do mesmo produto, você ganha 25% de desconto.")
 
         try:
-            # Obtém a lista de instâncias de objetos diretamente da View
             produtos = ClienteView.listar_produtos()
-
             if not produtos:
-                st.info("Nenhum produto disponível no momento.")
+                st.info("Nenhum produto cadastrado no catálogo.")
                 return
 
             colunas_por_linha = 3
-            
-            # Loop que divide os produtos em grupos do tamanho estipulado
             for i in range(0, len(produtos), colunas_por_linha):
                 grupo_produtos = produtos[i : i + colunas_por_linha]
                 colunas = st.columns(colunas_por_linha)
 
                 for col, produto in zip(colunas, grupo_produtos):
                     with col:
-                        # O container com borda cria o efeito visual de 'Card'
                         with st.container(border=True):
-                            
-                            # 1. Renderização da Imagem do Produto
+                            # Renderização da imagem em bytes salvos no JSON
                             if produto.imagem:
                                 try:
                                     img_bytes = base64.b64decode(produto.imagem)
                                     st.image(img_bytes, use_container_width=True)
                                 except Exception:
-                                    # Caso haja falha na string base64, exibe um placeholder
-                                    st.image("https://via.placeholder.com/150", caption="Erro ao carregar imagem", use_container_width=True)
+                                    st.image("https://via.placeholder.com/150", use_container_width=True)
                             else:
-                                st.image("https://via.placeholder.com/150", caption="Sem imagem", use_container_width=True)
+                                st.image("https://via.placeholder.com/150", use_container_width=True)
 
-                            # 2. Informações do Produto (Acessadas diretamente por POO)
                             st.subheader(produto.descricao)
-                            st.write(f"**Preço:** R$ {produto.preco:.2f}")
+                            
+                            # 2. Lógica Visual de Preço: Normal vs Promocional
+                            if promo_ativa:
+                                preco_desconto = produto.preco * (1 - promo_ativa.percentual_desconto / 100)
+                                st.write(f"❌ De: ~~R$ {produto.preco:.2f}~~")
+                                st.write(f"✅ **Por: R$ {preco_desconto:.2f}**")
+                            else:
+                                st.write(f"💰 **Preço:** R$ {produto.preco:.2f}")
                             
                             if produto.estoque > 0:
                                 st.write(f"📦 *Estoque:* {produto.estoque} un.")
-                                
-                                # 3. Seletor de Quantidade interno ao Card
                                 quantidade = st.number_input(
-                                    "Quantidade:",
-                                    min_value=1,
-                                    max_value=produto.estoque,
-                                    value=1,
-                                    key=f"qtd_{produto.id}"  # Chave única obrigatória
+                                    "Quantidade:", min_value=1, max_value=produto.estoque, value=1, key=f"qtd_{produto.id}"
                                 )
 
-                                if st.button("🛒 Adicionar ao Carrinho", key=f"btn_{produto.id}", use_container_width=True, type="primary"):
+                                if st.button("Adicionar ao Carrinho", key=f"btn_{produto.id}", use_container_width=True, type="primary"):
                                     if ClienteView.inserir_produto_carrinho(st.session_state.id_cliente_logado, produto.id, quantidade):
-                                        st.success(f"Adicionado!")
+                                        st.success("Adicionado!")
                                         time.sleep(1)
                                         st.rerun()
                                     else:
-                                        st.error("Erro ao adicionar produto.")
+                                        st.error("Erro ao adicionar.")
                             else:
                                 st.error("Produto Esgotado")
-
         except Exception as erro:
-            st.error(f"Erro ao carregar a vitrine de produtos.")
-            print(" ---- Erro Interno ---->", erro)
+            st.error("Erro ao renderizar catálogo.")
 
     #VER CARRINHO E FINALIZAR COMPRA
     @staticmethod

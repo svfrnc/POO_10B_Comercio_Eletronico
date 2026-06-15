@@ -2,6 +2,8 @@ from Admin.Cliente import Cliente, ClienteDAO
 from Admin.Categoria import Categoria, CategoriaDAO
 from Admin.Produto import Produto, ProdutoDAO
 from Cliente.Carrinho import Carrinho, CarrinhoDAO
+from Admin.Promocao import Promocao, PromocaoDAO
+from datetime import datetime
 
 class View:
     #CLIENTE
@@ -86,3 +88,22 @@ class View:
     @staticmethod
     def listar_vendas(idCliente):
         return CarrinhoDAO.listar_compras(idCliente)
+    
+    #PROMOÇOES
+    @staticmethod
+    def promocao_inserir(data_inicio, data_fim, percentual_desconto):
+        p = Promocao(0, data_inicio, data_fim, percentual_desconto)
+        PromocaoDAO.inserir(p)
+
+    @staticmethod
+    def promocao_listar():
+        return PromocaoDAO.listar()
+
+    @staticmethod
+    def promocao_excluir(id):
+        p = Promocao(id, datetime.now(), datetime.now(), 0.0)
+        PromocaoDAO.excluir(p)
+
+    @staticmethod
+    def obter_promocao_ativa():
+        return PromocaoDAO.obter_promocao_ativa()
